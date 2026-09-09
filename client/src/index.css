@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply m-0 bg-white font-sans text-base leading-relaxed text-[#071b30];
+  }
+
+  a:focus-visible,
+  button:focus-visible {
+    @apply outline-2 outline-offset-4 outline-blue-600;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+} /*to scroll in page upon clikcing*/
