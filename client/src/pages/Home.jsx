@@ -1,6 +1,6 @@
 import Subjects from "./Subjects";
 import Tutors from "./Tutors";
-import WhyUs from "./Whyus";
+import WhyUs from "./WhyUs";
 import Testimonials from "./Testimonials";
 import Contact from "./Contact";
 import Hero from "../components/Hero";
