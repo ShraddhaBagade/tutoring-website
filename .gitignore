@@ -1,5 +1,13 @@
+# Dependencies
 node_modules/
-dist/
+
+# Environment files containing secrets
 .env
 .env.*
 !.env.example
+
+# Build output
+dist/
+
+# Logs
+*.log
