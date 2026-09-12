@@ -25,7 +25,7 @@ function WhyUs() {
             Face-to-Face Learning
           </h3>
 
-         левера
+        
           <p className="mt-3 text-gray-600">
             Students receive direct support and can ask questions
             throughout every lesson.

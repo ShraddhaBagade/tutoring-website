@@ -1,4 +1,4 @@
-function Tutors() {
+function HomeTutors() {
   return (
     <div>
       {/* Section heading */}
@@ -70,7 +70,7 @@ function Tutors() {
           />
 
           <h3 className="mt-4 text-xl font-bold text-blue-950">
-            Emily Rodriguez
+            Michael Rodriguez
           </h3>
 
           <p className="mt-1 font-medium text-amber-900">English Tutor</p>
@@ -143,7 +143,7 @@ function Tutors() {
             className="mx-auto h-32 w-32 rounded-full object-cover"
           />
 
-          <h3 className="mt-4 text- backdrop:xl font-bold text-blue-950">
+          <h3 className="mt-4 text-xl font-bold text-blue-950">
             Rachael Diaz
           </h3>
 
@@ -163,4 +163,4 @@ function Tutors() {
   );
 }
 
-export default Tutors;
+export default HomeTutors;

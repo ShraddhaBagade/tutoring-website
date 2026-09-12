@@ -1,0 +1,13 @@
+[1mdiff --git a/client/src/pages/Whyus.jsx b/client/src/pages/Whyus.jsx[m
+[1mindex 16bbdfb..80f0b71 100644[m
+[1m--- a/client/src/pages/Whyus.jsx[m
+[1m+++ b/client/src/pages/Whyus.jsx[m
+[36m@@ -25,7 +25,7 @@[m [mfunction WhyUs() {[m
+             Face-to-Face Learning[m
+           </h3>[m
+ [m
+[31m-         левера[m
+[32m+[m[41m        [m
+           <p className="mt-3 text-gray-600">[m
+             Students receive direct support and can ask questions[m
+             throughout every lesson.[m

@@ -1,5 +1,5 @@
 import Subjects from "./Subjects";
-import Tutors from "./Tutors";
+import HomeTutors from "./HomeTutors";
 import WhyUs from "./WhyUs";
 import Testimonials from "./Testimonials";
 import Contact from "./Contact";
@@ -15,7 +15,7 @@ function Home() {
       </section>
 
       <section id="tutors" className="scroll-mt-48 py-16">
-        <Tutors />
+        <HomeTutors />
       </section>
 
       <section id="why-us" className="scroll-mt-48 py-16">
