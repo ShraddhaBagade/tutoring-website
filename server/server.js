@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDatabase from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/bookings", bookingRoutes);
 
 
 // Test route

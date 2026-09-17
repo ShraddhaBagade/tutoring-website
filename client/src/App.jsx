@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar";
 import DashboardNavbar from "./components/DashboardNavbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
-import TutorProfile from "./pages/dashboard/TutorProfile";
+
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -69,14 +69,7 @@ function App() {
               }
             />
 
-            <Route
-              path="/dashboard/tutors/:tutorId"
-              element={
-                <ProtectedRoute>
-                  <TutorProfile />
-                </ProtectedRoute>
-              }
-            />
+          
             <Route
               path="/dashboard/tutors/:tutorId/schedule"
               element={
