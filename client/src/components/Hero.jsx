@@ -32,7 +32,7 @@ function Hero() {
       {/* Right side: tutoring photo */}
       <div>
         <img
-          src="/images/tutoring.jpg"
+          src="/images/tutoring.png"
           alt="A tutor helping a student with her studies"
           className="h-96 w-full rounded-xl object-cover shadow-md"
         />
