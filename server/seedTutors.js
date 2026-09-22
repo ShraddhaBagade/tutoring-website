@@ -58,8 +58,8 @@ const tutors = [
   },
   {
     tutorId: 4,
-    name: "Michael Lee",
-    email: "michael.lee@edumodern.com",
+    name: "Priya Shah",
+    email: "priya.shah@edumodern.com",
     subject: "Computer Skills",
     experience: "5 years",
     bio: "Builds student confidence in essential computer and digital skills.",

@@ -4,7 +4,6 @@ import { DayPicker } from "@daypicker/react";
 import "@daypicker/react/style.css";
 import { apiUrl } from "../config/api";
 
-
 function convertTimeToMinutes(time) {
   const [timePart, period] = time.split(" ");
   const [hourText, minuteText] = timePart.split(":");
@@ -70,9 +69,7 @@ function TutorSchedule() {
         setTutorLoading(true);
         setTutorError("");
 
-        const response = await fetch(
-          apiUrl("/api/tutors/${tutorId}"),
-        );
+        const response = await fetch(apiUrl(`/api/tutors/${tutorId}`));
 
         const data = await response.json();
 
@@ -133,7 +130,9 @@ function TutorSchedule() {
 
       try {
         const response = await fetch(
-          apiUrl("/api/bookings/availability?tutorId=${tutor.tutorId}&date=${selectedDate}"),
+          apiUrl(
+            `/api/bookings/availability?tutorId=${tutor.tutorId}&date=${selectedDate}`,
+          ),
           {
             credentials: "include",
           },
@@ -167,7 +166,9 @@ function TutorSchedule() {
         const startDate = convertDateToValue(minimumBookingDate);
 
         const response = await fetch(
-          apiUrl("/api/bookings/calendar-availability?tutorId=${tutor.tutorId}&startDate=${startDate}"),
+          apiUrl(
+            `/api/bookings/calendar-availability?tutorId=${tutor.tutorId}&startDate=${startDate}`,
+          ),
           {
             credentials: "include",
           },
@@ -179,13 +180,7 @@ function TutorSchedule() {
           return;
         }
 
-        const availabilityByDate = {};
-
-        for (const item of data.availability || []) {
-          availabilityByDate[item.date] = item.bookedTimes || [];
-        }
-
-        setBookedByDate(availabilityByDate);
+        setBookedByDate(data.bookedByDate || {});
       } catch {
         setBookedByDate({});
       }
@@ -487,9 +482,9 @@ function TutorSchedule() {
 
                 <button
                   type="button"
-                  onClick={() => setSessionType("In person")}
+                  onClick={() => setSessionType("In Person")}
                   className={
-                    sessionType === "In person"
+                    sessionType === "In Person"
                       ? "rounded-xl border-2 border-blue-950 bg-blue-50 px-4 py-3 font-semibold text-blue-950"
                       : "rounded-xl border border-gray-300 px-4 py-3 font-semibold text-gray-600 hover:border-blue-950"
                   }>

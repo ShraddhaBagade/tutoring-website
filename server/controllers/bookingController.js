@@ -18,15 +18,49 @@ function convertTimeToMinutes(time) {
   return hour * 60 + minuteValue;
 }
 
+function getSessionEndDateTime(sessionDate, sessionTime) {
+  const [year, month, day] = sessionDate.split("-").map(Number);
+
+  const startMinutes = convertTimeToMinutes(sessionTime);
+
+  const startHour = Math.floor(startMinutes / 60);
+  const startMinute = startMinutes % 60;
+
+  // Each tutoring session lasts one hour.
+  return new Date(year, month - 1, day, startHour, startMinute + 60);
+}
+
+async function deleteExpiredUpcomingBookings(filter = {}) {
+  const upcomingBookings = await Booking.find({
+    ...filter,
+    status: "upcoming",
+  }).select("_id sessionDate sessionTime");
+
+  const now = new Date();
+
+  const expiredBookingIds = upcomingBookings
+    .filter((booking) => {
+      const sessionEndTime = getSessionEndDateTime(
+        booking.sessionDate,
+        booking.sessionTime,
+      );
+
+      return sessionEndTime < now;
+    })
+    .map((booking) => booking._id);
+
+  if (expiredBookingIds.length > 0) {
+    await Booking.deleteMany({
+      _id: { $in: expiredBookingIds },
+      status: "upcoming",
+    });
+  }
+}
+
 // Create a new booking
 export async function createBooking(req, res) {
   try {
-    const {
-      tutorId,
-      sessionType,
-      sessionDate,
-      sessionTime,
-    } = req.body;
+    const { tutorId, sessionType, sessionDate, sessionTime } = req.body;
 
     const numericTutorId = Number(tutorId);
 
@@ -167,6 +201,9 @@ export async function createBooking(req, res) {
 // Get bookings belonging to the logged-in student
 export async function getMyBookings(req, res) {
   try {
+    await deleteExpiredUpcomingBookings({
+      student: req.user._id,
+    });
     const bookings = await Booking.find({
       student: req.user._id,
     }).sort({
@@ -313,6 +350,7 @@ export async function cancelBooking(req, res) {
 // Get bookings for the logged-in tutor
 export async function getTutorBookings(req, res) {
   try {
+    await deleteExpiredUpcomingBookings();
     const tutor = await Tutor.findOne({
       user: req.user._id,
       status: "active",

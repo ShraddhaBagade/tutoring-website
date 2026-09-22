@@ -12,10 +12,9 @@ function MySessions() {
   useEffect(() => {
     async function getBookings() {
       try {
-        const response = await fetch(
-           apiUrl("/api/bookings/my-bookings"),
-          { credentials: "include" }
-        );
+        const response = await fetch(apiUrl("/api/bookings/my-bookings"), {
+          credentials: "include",
+        });
 
         const data = await response.json();
 
@@ -36,13 +35,13 @@ function MySessions() {
   }, []);
 
   const upcomingSessions = sessions.filter(
-    (session) => session.status === "upcoming"
+    (session) => session.status === "upcoming",
   );
   const completedSessions = sessions.filter(
-    (session) => session.status === "completed"
+    (session) => session.status === "completed",
   );
   const cancelledSessions = sessions.filter(
-    (session) => session.status === "cancelled"
+    (session) => session.status === "cancelled",
   );
 
   const tabs = [
@@ -52,14 +51,15 @@ function MySessions() {
   ];
 
   const filteredSessions = sessions.filter(
-    (session) => session.status === activeTab
+    (session) => session.status === activeTab,
   );
 
   const emptyStateContent = {
     upcoming: {
       icon: "📅",
       title: "No upcoming sessions",
-      description: "You have not scheduled a lesson yet. Find a tutor and book a convenient time.",
+      description:
+        "You have not scheduled a lesson yet. Find a tutor and book a convenient time.",
     },
     completed: {
       icon: "✅",
@@ -94,11 +94,11 @@ function MySessions() {
 
     try {
       const response = await fetch(
-         apiUrl("/api/bookings/${bookingId}/cancel"),
+        apiUrl(`/api/bookings/${bookingId}/cancel`),
         {
           method: "PATCH",
           credentials: "include",
-        }
+        },
       );
 
       const data = await response.json();
@@ -110,9 +110,12 @@ function MySessions() {
 
       setSessions((currentSessions) =>
         currentSessions.map((session) =>
-          session._id === bookingId ? data.booking : session
-        )
+          session._id === data.booking._id ? data.booking : session,
+        ),
       );
+
+      // Show the updated cancelled session immediately.
+      setActiveTab("cancelled");
     } catch {
       setError("Cannot connect to the server. Please try again.");
     } finally {
@@ -135,8 +138,7 @@ function MySessions() {
 
         <Link
           to="/dashboard/book"
-          className="inline-flex w-fit items-center justify-center rounded-xl bg-blue-950 px-5 py-3 font-semibold text-white shadow-sm hover:bg-blue-900"
-        >
+          className="inline-flex w-fit items-center justify-center rounded-xl bg-blue-950 px-5 py-3 font-semibold text-white shadow-sm hover:bg-blue-900">
           Book New Session +
         </Link>
       </div>
@@ -179,16 +181,14 @@ function MySessions() {
                 activeTab === tab.id
                   ? "whitespace-nowrap border-b-2 border-blue-950 px-5 py-4 font-semibold text-blue-950"
                   : "whitespace-nowrap border-b-2 border-transparent px-5 py-4 font-medium text-gray-500 hover:text-blue-950"
-              }
-            >
+              }>
               {tab.label}
               <span
                 className={
                   activeTab === tab.id
                     ? "ml-2 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-950"
                     : "ml-2 rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-500"
-                }
-              >
+                }>
                 {tab.count}
               </span>
             </button>
@@ -211,8 +211,7 @@ function MySessions() {
             {filteredSessions.map((session) => (
               <article
                 key={session._id}
-                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
-              >
+                className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex gap-4">
                   <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
                     {session.tutorImage ? (
@@ -245,13 +244,17 @@ function MySessions() {
 
                 <div className="mt-5 grid gap-3 border-t border-gray-100 pt-5 sm:grid-cols-2">
                   <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Date</p>
+                    <p className="text-xs uppercase tracking-wide text-gray-500">
+                      Date
+                    </p>
                     <p className="mt-1 text-sm font-semibold text-blue-950">
                       {formatDate(session.sessionDate)}
                     </p>
                   </div>
                   <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Time</p>
+                    <p className="text-xs uppercase tracking-wide text-gray-500">
+                      Time
+                    </p>
                     <p className="mt-1 text-sm font-semibold text-blue-950">
                       {session.sessionTime}
                     </p>
@@ -271,8 +274,7 @@ function MySessions() {
                     type="button"
                     onClick={() => handleCancelBooking(session._id)}
                     disabled={cancellingId === session._id}
-                    className="mt-5 w-full rounded-xl border border-red-200 px-5 py-3 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
+                    className="mt-5 w-full rounded-xl border border-red-200 px-5 py-3 font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">
                     {cancellingId === session._id
                       ? "Cancelling..."
                       : "Cancel Session"}
@@ -297,8 +299,7 @@ function MySessions() {
             {activeTab === "upcoming" && (
               <Link
                 to="/dashboard/book"
-                className="mt-6 rounded-xl bg-orange-600 px-6 py-3 font-semibold text-white hover:bg-orange-700"
-              >
+                className="mt-6 rounded-xl bg-orange-600 px-6 py-3 font-semibold text-white hover:bg-orange-700">
                 Browse Tutors →
               </Link>
             )}
