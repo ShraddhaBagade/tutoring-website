@@ -18,16 +18,45 @@ function convertTimeToMinutes(time) {
   return hour * 60 + minuteValue;
 }
 
-function getSessionEndDateTime(sessionDate, sessionTime) {
-  const [year, month, day] = sessionDate.split("-").map(Number);
+const BOOKING_TIME_ZONE = "America/New_York";
 
-  const startMinutes = convertTimeToMinutes(sessionTime);
+function getCurrentBookingTime() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: BOOKING_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date());
 
-  const startHour = Math.floor(startMinutes / 60);
-  const startMinute = startMinutes % 60;
+  const values = Object.fromEntries(
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
 
-  // Each tutoring session lasts one hour.
-  return new Date(year, month - 1, day, startHour, startMinute + 60);
+  return {
+    today: `${values.year}-${values.month}-${values.day}`,
+    currentMinutes: Number(values.hour) * 60 + Number(values.minute),
+  };
+}
+
+function hasSessionExpired(sessionDate, sessionTime) {
+  const { today, currentMinutes } = getCurrentBookingTime();
+
+  if (sessionDate < today) {
+    return true;
+  }
+
+  if (sessionDate > today) {
+    return false;
+  }
+
+  const sessionEndMinutes = convertTimeToMinutes(sessionTime) + 60;
+
+  return sessionEndMinutes <= currentMinutes;
 }
 
 async function deleteExpiredUpcomingBookings(filter = {}) {
@@ -36,16 +65,9 @@ async function deleteExpiredUpcomingBookings(filter = {}) {
     status: "upcoming",
   }).select("_id sessionDate sessionTime");
 
-  const now = new Date();
-
   const expiredBookingIds = upcomingBookings
     .filter((booking) => {
-      const sessionEndTime = getSessionEndDateTime(
-        booking.sessionDate,
-        booking.sessionTime,
-      );
-
-      return sessionEndTime < now;
+      return hasSessionExpired(booking.sessionDate, booking.sessionTime);
     })
     .map((booking) => booking._id);
 
@@ -101,7 +123,7 @@ export async function createBooking(req, res) {
       });
     }
 
-    const today = new Date().toISOString().split("T")[0];
+    const { today, currentMinutes } = getCurrentBookingTime();
 
     if (sessionDate < today) {
       return res.status(400).json({
@@ -141,18 +163,11 @@ export async function createBooking(req, res) {
       });
     }
 
-    if (sessionDate === today) {
-      const currentTime = new Date();
-
-      const currentMinutes =
-        currentTime.getHours() * 60 + currentTime.getMinutes();
-
-      if (sessionMinutes <= currentMinutes) {
-        return res.status(400).json({
-          message:
-            "This session time has already passed. Please choose another available time.",
-        });
-      }
+    if (sessionDate === today && sessionMinutes <= currentMinutes) {
+      return res.status(400).json({
+        message:
+          "This session time has already passed. Please choose another available time.",
+      });
     }
 
     const existingBooking = await Booking.findOne({
