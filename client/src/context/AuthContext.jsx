@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { apiUrl } from "../config/api";
 
 const AuthContext = createContext(null);
 
@@ -13,12 +14,9 @@ export function AuthProvider({ children }) {
 
   async function checkAuthentication() {
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/me",
-        {
-          credentials: "include",
-        }
-      );
+      const response = await fetch(apiUrl("/api/auth/me"), {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         setUser(null);
@@ -36,13 +34,10 @@ export function AuthProvider({ children }) {
 
   async function logout() {
     try {
-      await fetch(
-        "http://localhost:5000/api/auth/logout",
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
+      await fetch(apiUrl("/api/auth/logout"), {
+        method: "POST",
+        credentials: "include",
+      });
     } finally {
       setUser(null);
     }
@@ -71,9 +66,7 @@ export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error(
-      "useAuth must be used inside AuthProvider."
-    );
+    throw new Error("useAuth must be used inside AuthProvider.");
   }
 
   return context;
