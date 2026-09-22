@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
+import { apiUrl } from "../../config/api";
 
 function MySessions() {
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -12,7 +13,7 @@ function MySessions() {
     async function getBookings() {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/bookings/my-bookings",
+           apiUrl("/api/bookings/my-bookings"),
           { credentials: "include" }
         );
 
@@ -93,7 +94,7 @@ function MySessions() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/bookings/${bookingId}/cancel`,
+         apiUrl("/api/bookings/${bookingId}/cancel"),
         {
           method: "PATCH",
           credentials: "include",

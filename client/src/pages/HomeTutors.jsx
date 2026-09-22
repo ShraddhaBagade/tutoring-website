@@ -1,3 +1,6 @@
+import { apiUrl } from "../config/api";
+
+
 function HomeTutors() {
   return (
     <div>

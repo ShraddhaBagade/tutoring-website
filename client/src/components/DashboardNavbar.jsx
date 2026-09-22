@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router";
-
 import { useAuth } from "../context/AuthContext";
 
 function DashboardNavbar() {
@@ -13,41 +12,81 @@ function DashboardNavbar() {
 
   const firstName =
     rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1);
-
+  const isTutor = user?.accountType === "tutor";
   const firstLetter = firstName.charAt(0);
 
-  const navigationItems = [
-    {
-      name: "Overview",
-      path: "/dashboard",
-      end: true,
-    },
-    {
-      name: "Subjects",
-      path: "/dashboard/subjects",
-    },
-    {
-      name: "Tutors",
-      path: "/dashboard/tutors",
-    },
-    {
-      name: "Book Session",
-      path: "/dashboard/book",
-    },
-    {
-      name: "My Sessions",
-      path: "/dashboard/sessions",
-    },
-  ];
+  const navigationItems = isTutor
+    ? [
+        {
+          name: "Tutor Home",
+          path: "/dashboard/tutor",
+          end: true,
+        },
+        {
+          name: "Assignments",
+          path: "/dashboard/tutor/assignments",
+        },
+        {
+          name: "Class Notes",
+          path: "/dashboard/tutor/lesson-notes",
+        },
+      ]
+    : [
+        {
+          name: "Overview",
+          path: "/dashboard",
+          end: true,
+        },
+        {
+          name: "Subjects",
+          path: "/dashboard/subjects",
+        },
+        {
+          name: "Tutors",
+          path: "/dashboard/tutors",
+        },
+        {
+          name: "Book Session",
+          path: "/dashboard/book",
+        },
+        {
+          name: "My Sessions",
+          path: "/dashboard/sessions",
+        },
+        {
+          name: "My Assignments",
+          path: "/dashboard/assignments",
+        },
 
-  function getLinkClasses({ isActive }) {
-    return isActive
-      ? "text-sm font-semibold text-blue-950"
+        {
+          name: "Class Notes",
+          path: "/dashboard/class-notes",
+        },
+      ];
+
+  if (user?.accountType === "admin") {
+    navigationItems.push({
+      name: "Admin",
+      path: "/dashboard/admin/tutors",
+      admin: true,
+    });
+  }
+
+  function getLinkClasses({ isActive }, isAdmin = false) {
+    if (isActive) {
+      return isAdmin
+        ? "text-sm font-semibold text-orange-700"
+        : "text-sm font-semibold text-blue-950";
+    }
+
+    return isAdmin
+      ? "text-sm font-semibold text-orange-600 hover:text-orange-700"
       : "text-sm font-medium text-gray-600 hover:text-blue-950";
   }
 
   async function handleLogout() {
     await logout();
+    setMobileMenuOpen(false);
     navigate("/login");
   }
 
@@ -56,11 +95,11 @@ function DashboardNavbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b Tokens-gray-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white">
       <nav className="mx-auto max-w-7xl px-6">
         <div className="flex min-h-20 items-center justify-between gap-5">
           <Link
-            to="/dashboard"
+            to={isTutor ? "/dashboard/tutor" : "/dashboard"}
             className="text-2xl font-bold text-blue-950"
             onClick={closeMobileMenu}>
             EduModern
@@ -73,7 +112,9 @@ function DashboardNavbar() {
                 key={item.name}
                 to={item.path}
                 end={item.end}
-                className={getLinkClasses}>
+                className={(linkState) =>
+                  getLinkClasses(linkState, item.admin)
+                }>
                 {item.name}
               </NavLink>
             ))}
@@ -121,11 +162,17 @@ function DashboardNavbar() {
                   to={item.path}
                   end={item.end}
                   onClick={closeMobileMenu}
-                  className={({ isActive }) =>
-                    isActive
-                      ? "rounded-lg bg-blue-50 px-4 py-3 font-semibold text-blue-950"
-                      : "rounded-lg px-4 py-3 font-medium text-gray-600 hover:bg-gray-50"
-                  }>
+                  className={({ isActive }) => {
+                    if (isActive) {
+                      return item.admin
+                        ? "rounded-lg bg-orange-50 px-4 py-3 font-semibold text-orange-700"
+                        : "rounded-lg bg-blue-50 px-4 py-3 font-semibold text-blue-950";
+                    }
+
+                    return item.admin
+                      ? "rounded-lg px-4 py-3 font-semibold text-orange-600 hover:bg-orange-50"
+                      : "rounded-lg px-4 py-3 font-medium text-gray-600 hover:bg-gray-50";
+                  }}>
                   {item.name}
                 </NavLink>
               ))}

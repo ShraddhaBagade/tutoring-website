@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
+import { apiUrl } from "../config/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ function Login() {
     setMessage("Logging in...");
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch( apiUrl("/api/auth/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,6 +44,12 @@ function Login() {
 
       setUser(data.user);
       setMessage("Login successful!");
+
+      if (data.user.accountType === "tutor") {
+        navigate("/dashboard/tutor");
+        return;
+      }
+
       navigate("/dashboard");
     } catch {
       setMessage("Cannot connect to the server.");

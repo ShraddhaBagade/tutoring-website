@@ -1,6 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
-import { useState } from "react";
-import tutors from "../../data/tutors";
+import { apiUrl } from "../../config/api";
 
 function Tutors() {
   const subjects = [
@@ -14,7 +14,10 @@ function Tutors() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const [tutors, setTutors] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const requestedSubject = searchParams.get("subject") || "All";
 
@@ -22,15 +25,36 @@ function Tutors() {
     ? requestedSubject
     : "All";
 
+  useEffect(() => {
+    async function getTutors() {
+      try {
+        const response = await fetch( apiUrl("/api/tutors"));
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.message || "Unable to load tutors.");
+          return;
+        }
+
+        setTutors(data.tutors || []);
+      } catch {
+        setError("Cannot connect to the server.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getTutors();
+  }, []);
+
   function handleSubjectChange(subject) {
     if (subject === "All") {
       setSearchParams({});
       return;
     }
 
-    setSearchParams({
-      subject,
-    });
+    setSearchParams({ subject });
   }
 
   const filteredTutors = tutors.filter((tutor) => {
@@ -64,13 +88,14 @@ function Tutors() {
           </p>
         </div>
 
-        <p className="font-medium text-gray-500">
-          {filteredTutors.length}{" "}
-          {filteredTutors.length === 1 ? "tutor" : "tutors"} found
-        </p>
+        {!loading && !error && (
+          <p className="font-medium text-gray-500">
+            {filteredTutors.length}{" "}
+            {filteredTutors.length === 1 ? "tutor" : "tutors"} found
+          </p>
+        )}
       </div>
 
-      {/* Tutor search */}
       <div className="mt-8">
         <label htmlFor="tutor-search" className="sr-only">
           Search tutors
@@ -102,7 +127,6 @@ function Tutors() {
         </div>
       </div>
 
-      {/* Subject filters */}
       <div className="mt-8 flex flex-wrap gap-3">
         {subjects.map((subject) => (
           <button
@@ -119,37 +143,44 @@ function Tutors() {
         ))}
       </div>
 
-      {/* Tutor cards */}
-      <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {filteredTutors.map((tutor) => (
-          <article
-            key={tutor.id}
-            className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-            {/* Clickable tutor-card content */}
+      {loading && (
+        <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-10 text-center">
+          <p className="font-medium text-gray-600">Loading tutors...</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+          <h2 className="font-bold text-red-700">Unable to load tutors</h2>
+
+          <p className="mt-2 text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredTutors.map((tutor) => (
             <Link
-              to={`/dashboard/tutors/${tutor.id}/schedule`}
-              className="group block"
-              aria-label={`Book a session with ${tutor.name}`}>
+              key={tutor._id}
+              to={`/dashboard/tutors/${tutor.tutorId}/schedule`}
+              className="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+              aria-label={`View availability for ${tutor.name}`}>
               <div className="relative overflow-hidden">
                 <img
                   src={tutor.image}
                   alt={`${tutor.name}, ${tutor.subject} tutor`}
-                  className="h-64 w-full object-cover transition duration-300 group-hover:scale-105"
+                  className="h-64 w-full object-cover object-center transition duration-300 group-hover:scale-105"
                 />
-
-                <span className="absolute left-4 top-4 rounded-full bg-white px-3 py-1 text-sm font-semibold text-green-700 shadow">
-                  ● Available
-                </span>
 
                 <span className="absolute bottom-4 left-4 rounded-full bg-blue-950 px-3 py-1 text-sm font-semibold text-white">
                   {tutor.subject}
                 </span>
               </div>
 
-              <div className="p-6 pb-4">
+              <div className="p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-xl font-bold text-blue-950 group-hover:text-blue-700">
+                    <h2 className="text-xl font-bold text-blue-950 transition group-hover:text-blue-700">
                       {tutor.name}
                     </h2>
 
@@ -163,47 +194,22 @@ function Tutors() {
                   </span>
                 </div>
 
-                <div className="mt-5 border-t border-gray-100 pt-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold text-blue-950">
-                      Next available
-                    </p>
+                <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-5">
+                  <p className="font-semibold text-blue-950">
+                    View availability
+                  </p>
 
-                    <p className="text-sm font-semibold text-green-700">
-                      {tutor.nextAvailable}
-                    </p>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {tutor.times.slice(0, 3).map((time) => (
-                      <span
-                        key={time}
-                        className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-blue-950">
-                        {time}
-                      </span>
-                    ))}
-                  </div>
+                  <span className="text-lg font-semibold text-orange-600">
+                    →
+                  </span>
                 </div>
-
-                <p className="mt-5 text-sm font-semibold text-blue-700">
-                  Click card to view availability and book →
-                </p>
               </div>
             </Link>
+          ))}
+        </div>
+      )}
 
-            {/* Separate booking button */}
-            <div className="px-6 pb-6">
-              <Link
-                to={`/dashboard/tutors/${tutor.id}/schedule`}
-                className="flex w-full items-center justify-center rounded-xl bg-orange-600 px-5 py-3 font-semibold text-white transition hover:bg-orange-700">
-                Book Session
-              </Link>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      {filteredTutors.length === 0 && (
+      {!loading && !error && filteredTutors.length === 0 && (
         <div className="mt-8 rounded-2xl border border-gray-200 bg-white p-10 text-center">
           <div className="text-4xl">🔎</div>
 

@@ -1,3 +1,5 @@
+import { apiUrl } from "../config/api";
+
 function WhyUs() {
   return (
     <div>

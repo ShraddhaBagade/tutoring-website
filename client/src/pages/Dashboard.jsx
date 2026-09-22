@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import tutors from "../data/tutors";
 import { Link } from "react-router";
+import { apiUrl } from "../config/api";
 function Dashboard() {
   const { user } = useAuth();
 

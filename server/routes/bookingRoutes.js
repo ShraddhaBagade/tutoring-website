@@ -1,30 +1,77 @@
 import express from "express";
 
 import {
+  cancelBooking,
+  cancelTutorBooking,
+  completeTutorBooking,
   createBooking,
-  getMyBookings,
   getBookedTimes,
   getCalendarAvailability,
-  cancelBooking,
+  getMyBookings,
+  getTutorBookings,
 } from "../controllers/bookingController.js";
 
-import { protect } from "../middleware/authMiddleware.js";
+import {
+  authorizeRoles,
+  protect,
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// All booking routes require authentication
+const studentAccountTypes = ["student", "parent", "admin"];
+
+/* All booking routes require login */
 router.use(protect);
 
-// Create a booking
-router.post("/", createBooking);
+/* Student booking routes */
+router.post(
+  "/",
+  authorizeRoles(...studentAccountTypes),
+  createBooking
+);
 
-// Get the logged-in student's bookings
-router.get("/my-bookings", getMyBookings);
+router.get(
+  "/my-bookings",
+  authorizeRoles(...studentAccountTypes),
+  getMyBookings
+);
 
-router.get("/availability", getBookedTimes);
+router.patch(
+  "/:bookingId/cancel",
+  authorizeRoles(...studentAccountTypes),
+  cancelBooking
+);
 
-router.get("/calendar-availability", getCalendarAvailability);
-// Cancel a booking
-router.patch("/:bookingId/cancel", cancelBooking);
+/* Tutor booking routes */
+router.get(
+  "/tutor-bookings",
+  authorizeRoles("tutor"),
+  getTutorBookings
+);
+
+router.patch(
+  "/tutor-bookings/:bookingId/complete",
+  authorizeRoles("tutor"),
+  completeTutorBooking
+);
+
+router.patch(
+  "/tutor-bookings/:bookingId/cancel",
+  authorizeRoles("tutor"),
+  cancelTutorBooking
+);
+
+/* Student availability checks while booking */
+router.get(
+  "/availability",
+  authorizeRoles(...studentAccountTypes),
+  getBookedTimes
+);
+
+router.get(
+  "/calendar-availability",
+  authorizeRoles(...studentAccountTypes),
+  getCalendarAvailability
+);
 
 export default router;

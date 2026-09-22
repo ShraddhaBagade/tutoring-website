@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { useAuth } from "../../context/AuthContext";
+import { apiUrl } from "../../config/api";
 
 function Profile() {
   const { user } = useAuth();

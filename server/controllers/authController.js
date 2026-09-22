@@ -1,26 +1,35 @@
 import bcrypt from "bcryptjs";
-import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+
+import User from "../models/User.js";
+
+function getCookieOptions() {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+}
 
 export const signup = async (req, res) => {
   try {
     const { accountType, fullName, email, password } = req.body;
 
-    // Check required fields
     if (!accountType || !fullName || !email || !password) {
       return res.status(400).json({
         message: "Please complete all fields.",
       });
     }
 
-    // Check account type
     if (!["student", "parent"].includes(accountType)) {
       return res.status(400).json({
         message: "Please select student or parent.",
       });
     }
 
-    // Check password length
     if (password.length < 8) {
       return res.status(400).json({
         message: "Password must contain at least 8 characters.",
@@ -29,7 +38,6 @@ export const signup = async (req, res) => {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check whether account already exists
     const existingUser = await User.findOne({
       email: normalizedEmail,
     });
@@ -40,10 +48,8 @@ export const signup = async (req, res) => {
       });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Save user in MongoDB
     const user = await User.create({
       accountType,
       fullName: fullName.trim(),
@@ -69,7 +75,6 @@ export const signup = async (req, res) => {
   }
 };
 
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -82,7 +87,6 @@ export const login = async (req, res) => {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Password is select:false in the model, so request it explicitly
     const user = await User.findOne({
       email: normalizedEmail,
     }).select("+password");
@@ -114,12 +118,7 @@ export const login = async (req, res) => {
       }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, getCookieOptions());
 
     return res.status(200).json({
       message: "Login successful.",
@@ -151,11 +150,9 @@ export const getMe = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  res.clearCookie("token", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-  });
+  const { maxAge, ...clearCookieOptions } = getCookieOptions();
+
+  res.clearCookie("token", clearCookieOptions);
 
   return res.status(200).json({
     message: "Logged out successfully.",

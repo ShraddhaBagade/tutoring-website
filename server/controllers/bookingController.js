@@ -1,4 +1,6 @@
 import Booking from "../models/Booking.js";
+import Tutor from "../models/Tutor.js";
+
 function convertTimeToMinutes(time) {
   const [clockTime, period] = time.split(" ");
   const [hourValue, minuteValue] = clockTime.split(":").map(Number);
@@ -15,33 +17,95 @@ function convertTimeToMinutes(time) {
 
   return hour * 60 + minuteValue;
 }
+
 // Create a new booking
 export async function createBooking(req, res) {
   try {
     const {
       tutorId,
-      tutorName,
-      tutorImage,
-      subject,
       sessionType,
       sessionDate,
       sessionTime,
     } = req.body;
 
+    const numericTutorId = Number(tutorId);
+
     if (
-      !tutorId ||
-      !tutorName ||
-      !subject ||
+      !Number.isInteger(numericTutorId) ||
       !sessionType ||
       !sessionDate ||
       !sessionTime
     ) {
       return res.status(400).json({
-        message: "Please provide all booking details.",
+        message: "Please provide valid booking details.",
+      });
+    }
+
+    if (!["Online", "In Person"].includes(sessionType)) {
+      return res.status(400).json({
+        message: "Please select a valid session format.",
+      });
+    }
+
+    const tutor = await Tutor.findOne({
+      tutorId: numericTutorId,
+      status: "active",
+      active: true,
+    });
+
+    if (!tutor) {
+      return res.status(404).json({
+        message: "This tutor is not currently available for booking.",
+      });
+    }
+
+    const selectedDate = new Date(`${sessionDate}T00:00:00Z`);
+
+    if (Number.isNaN(selectedDate.getTime())) {
+      return res.status(400).json({
+        message: "Please select a valid session date.",
       });
     }
 
     const today = new Date().toISOString().split("T")[0];
+
+    if (sessionDate < today) {
+      return res.status(400).json({
+        message: "You cannot book a session in the past.",
+      });
+    }
+
+    const weekdayNames = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+
+    const selectedWeekday = weekdayNames[selectedDate.getUTCDay()];
+
+    if (!tutor.availableDays.includes(selectedWeekday)) {
+      return res.status(400).json({
+        message: `${tutor.name} is not available on ${selectedWeekday}.`,
+      });
+    }
+
+    if (!tutor.times.includes(sessionTime)) {
+      return res.status(400).json({
+        message: `${tutor.name} is not available at this time.`,
+      });
+    }
+
+    const sessionMinutes = convertTimeToMinutes(sessionTime);
+
+    if (sessionMinutes < 540 || sessionMinutes >= 1080) {
+      return res.status(400).json({
+        message: "Please select a valid one-hour session time.",
+      });
+    }
 
     if (sessionDate === today) {
       const currentTime = new Date();
@@ -49,32 +113,16 @@ export async function createBooking(req, res) {
       const currentMinutes =
         currentTime.getHours() * 60 + currentTime.getMinutes();
 
-      const sessionMinutes = convertTimeToMinutes(sessionTime);
-
       if (sessionMinutes <= currentMinutes) {
         return res.status(400).json({
-          message: "This session cannot be Booked. Please select another time.",
+          message:
+            "This session time has already passed. Please choose another available time.",
         });
       }
     }
 
-    if (sessionDate < today) {
-      return res.status(400).json({
-        message: "This session cannot be Booked. Please select another time.",
-      });
-    }
-
-    const selectedDate = new Date(`${sessionDate}T00:00:00Z`);
-    const selectedDay = selectedDate.getUTCDay();
-
-    if (selectedDay === 0 || selectedDay === 6) {
-      return res.status(400).json({
-        message: "Sessions are only available Monday through Friday.",
-      });
-    }
-
     const existingBooking = await Booking.findOne({
-      tutorId,
+      tutorId: tutor.tutorId,
       sessionDate,
       sessionTime,
       status: "upcoming",
@@ -88,10 +136,10 @@ export async function createBooking(req, res) {
 
     const booking = await Booking.create({
       student: req.user._id,
-      tutorId,
-      tutorName,
-      tutorImage: tutorImage || "",
-      subject,
+      tutorId: tutor.tutorId,
+      tutorName: tutor.name,
+      tutorImage: tutor.image,
+      subject: tutor.subject,
       sessionType,
       sessionDate,
       sessionTime,
@@ -138,6 +186,7 @@ export async function getMyBookings(req, res) {
   }
 }
 
+// Get fully/partly booked dates for a tutor
 export async function getCalendarAvailability(req, res) {
   try {
     const { tutorId, startDate } = req.query;
@@ -185,6 +234,8 @@ export async function getCalendarAvailability(req, res) {
     });
   }
 }
+
+// Get booked time slots for one tutor and date
 export async function getBookedTimes(req, res) {
   try {
     const { tutorId, date } = req.query;
@@ -242,6 +293,8 @@ export async function cancelBooking(req, res) {
     }
 
     booking.status = "cancelled";
+    booking.cancelledBy = "student";
+    booking.cancellationReason = "";
     await booking.save();
 
     res.status(200).json({
@@ -253,6 +306,154 @@ export async function cancelBooking(req, res) {
 
     res.status(500).json({
       message: "Unable to cancel the booking.",
+    });
+  }
+}
+
+// Get bookings for the logged-in tutor
+export async function getTutorBookings(req, res) {
+  try {
+    const tutor = await Tutor.findOne({
+      user: req.user._id,
+      status: "active",
+      active: true,
+    });
+
+    if (!tutor) {
+      return res.status(404).json({
+        message: "Active tutor profile not found.",
+      });
+    }
+
+    const bookings = await Booking.find({
+      tutorId: tutor.tutorId,
+    })
+      .populate("student", "fullName email")
+      .sort({
+        sessionDate: 1,
+        sessionTime: 1,
+      });
+
+    res.status(200).json({
+      bookings,
+    });
+  } catch (error) {
+    console.error("Get tutor bookings error:", error);
+
+    res.status(500).json({
+      message: "Unable to load tutor sessions.",
+    });
+  }
+}
+
+// Mark a tutor's own upcoming session as completed
+export async function completeTutorBooking(req, res) {
+  try {
+    const tutor = await Tutor.findOne({
+      user: req.user._id,
+      status: "active",
+      active: true,
+    });
+
+    if (!tutor) {
+      return res.status(403).json({
+        message: "Only an active tutor can complete a session.",
+      });
+    }
+
+    const booking = await Booking.findOne({
+      _id: req.params.bookingId,
+      tutorId: tutor.tutorId,
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Session not found.",
+      });
+    }
+
+    if (booking.status === "completed") {
+      return res.status(400).json({
+        message: "This session has already been marked as completed.",
+      });
+    }
+
+    if (booking.status === "cancelled") {
+      return res.status(400).json({
+        message: "A cancelled session cannot be marked as completed.",
+      });
+    }
+
+    booking.status = "completed";
+    await booking.save();
+
+    res.status(200).json({
+      message: "Session marked as completed.",
+      booking,
+    });
+  } catch (error) {
+    console.error("Complete tutor booking error:", error);
+
+    res.status(500).json({
+      message: "Unable to mark the session as completed.",
+    });
+  }
+}
+
+// Cancel a tutor's own upcoming session
+export async function cancelTutorBooking(req, res) {
+  try {
+    const { cancellationReason } = req.body;
+
+    const tutor = await Tutor.findOne({
+      user: req.user._id,
+      status: "active",
+      active: true,
+    });
+
+    if (!tutor) {
+      return res.status(403).json({
+        message: "Only an active tutor can cancel a session.",
+      });
+    }
+
+    const booking = await Booking.findOne({
+      _id: req.params.bookingId,
+      tutorId: tutor.tutorId,
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Session not found.",
+      });
+    }
+
+    if (booking.status === "cancelled") {
+      return res.status(400).json({
+        message: "This session has already been cancelled.",
+      });
+    }
+
+    if (booking.status === "completed") {
+      return res.status(400).json({
+        message: "A completed session cannot be cancelled.",
+      });
+    }
+
+    booking.status = "cancelled";
+    booking.cancelledBy = "tutor";
+    booking.cancellationReason = cancellationReason?.trim() || "";
+    await booking.save();
+
+    res.status(200).json({
+      message: "Session cancelled successfully.",
+      booking,
+    });
+  } catch (error) {
+    console.error("Tutor cancel booking error:", error);
+
+    res.status(500).json({
+      message: "Unable to cancel the session.",
     });
   }
 }

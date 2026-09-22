@@ -4,7 +4,7 @@ import WhyUs from "./WhyUs";
 import Testimonials from "./Testimonials";
 import Contact from "./Contact";
 import Hero from "../components/Hero";
-
+import { apiUrl } from "../config/api";
 function Home() {
   return (
     <div>

@@ -1,3 +1,6 @@
+import { apiUrl } from "../config/api";
+
+
 function Testimonials() {
   return (
     <div className="rounded-xl bg-violet-50 px-6 py-12">

@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { apiUrl } from "../config/api";
 
 function Subjects() {
   const subjectsRef = useRef(null);

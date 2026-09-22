@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiUrl } from "../config/api";
 
 function Contact() {
   const [messageSent, setMessageSent] = useState(false);

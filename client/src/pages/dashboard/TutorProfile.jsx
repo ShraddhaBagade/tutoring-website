@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router";
 import tutors from "../../data/tutors";
+import { apiUrl } from "../../config/api";
 
 function TutorProfile() {
   const { tutorId } = useParams();

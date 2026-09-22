@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
+import { apiUrl } from "../config/api";
+
 
 function Signup() {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ function Signup() {
     setMessage("Creating account...");
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/signup", {
+      const response = await fetch(apiUrl("/api/auth/signup"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

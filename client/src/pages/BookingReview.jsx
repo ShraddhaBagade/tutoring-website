@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
+import { apiUrl } from "../config/api";
 
 function BookingReview() {
   const location = useLocation();
@@ -7,6 +8,7 @@ function BookingReview() {
 
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -53,17 +55,16 @@ function BookingReview() {
   async function handleConfirmBooking() {
     setIsSubmitting(true);
     setMessage("");
-    setMessageType("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/bookings", {
+      const response = await fetch( apiUrl("/api/bookings"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          tutorId: tutor.id,
+          tutorId: tutor.tutorId,
           tutorName: tutor.name,
           tutorImage: tutor.image,
           subject: tutor.subject,
@@ -76,25 +77,13 @@ function BookingReview() {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage(data.message || "The booking could not be confirmed.");
-        setMessageType("error");
+        setMessage(data.message || "Unable to create this booking.");
         return;
       }
 
-      setMessage("Your session has been booked successfully!");
-      setMessageType("success");
-
-      navigate("/dashboard/sessions", {
-        state: {
-          bookingCreated: true,
-          booking: data.booking,
-        },
-      });
+      navigate("/dashboard/sessions");
     } catch {
-      setMessage(
-        "Cannot connect to the server. Make sure the backend is running.",
-      );
-      setMessageType("error");
+      setMessage("Cannot connect to the server.");
     } finally {
       setIsSubmitting(false);
     }
@@ -234,7 +223,7 @@ function BookingReview() {
               type="button"
               onClick={handleConfirmBooking}
               disabled={isSubmitting}
-              className="rounded-xl bg-orange-600 px-6 py-3 font-semibold text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-gray-400">
+              className="rounded-xl bg-orange-600 px-6 py-3 font-semibold text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:bg-gray-300">
               {isSubmitting ? "Confirming..." : "Confirm Booking"}
             </button>
           </div>

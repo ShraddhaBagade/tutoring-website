@@ -1,3 +1,14 @@
+const standardSessionTimes = [
+  "9:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "1:00 PM",
+  "2:00 PM",
+  "3:00 PM",
+  "4:00 PM",
+  "5:00 PM",
+];
 const tutors = [
   {
     id: 1,
@@ -5,8 +16,8 @@ const tutors = [
     subject: "Mathematics",
     experience: "8 years",
     image: "/images/tutors/math-tutor.png",
-    nextAvailable: "Today",
-    times: ["9:00 AM", "11:00 AM", "3:00 PM"],
+    
+    times: [...standardSessionTimes],
   },
   {
     id: 2,
@@ -14,8 +25,8 @@ const tutors = [
     subject: "Science",
     experience: "6 years",
     image: "/images/tutors/science-tutor.png",
-    nextAvailable: "Tomorrow",
-    times: ["10:00 AM", "1:00 PM", "4:00 PM"],
+    
+    times: [...standardSessionTimes],
   },
   {
     id: 3,
@@ -23,7 +34,6 @@ const tutors = [
     subject: "Social Studies",
     experience: "9 years",
     image: "/images/tutors/social-studies-tutor.png",
-    nextAvailable: "Today",
     times: ["9:30 AM", "12:30 PM", "5:00 PM"],
   },
   {
@@ -32,8 +42,7 @@ const tutors = [
     subject: "Computer Skills",
     experience: "5 years",
     image: "/images/tutors/computer-tutor.png",
-    nextAvailable: "Tomorrow",
-    times: ["11:30 AM", "2:00 PM", "6:00 PM"],
+    times: [...standardSessionTimes],
   },
   {
     id: 5,
@@ -41,8 +50,7 @@ const tutors = [
     subject: "English",
     experience: "7 years",
     image: "/images/tutors/english-tutor.png",
-    nextAvailable: "Today",
-    times: ["10:30 AM", "3:30 PM", "5:30 PM"],
+    times: [...standardSessionTimes],
   },
 ];
 

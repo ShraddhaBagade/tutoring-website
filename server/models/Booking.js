@@ -51,6 +51,18 @@ const bookingSchema = new mongoose.Schema(
       enum: ["upcoming", "completed", "cancelled"],
       default: "upcoming",
     },
+
+    cancelledBy: {
+      type: String,
+      enum: ["student", "tutor", null],
+      default: null,
+    },
+
+    cancellationReason: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   {
     timestamps: true,
